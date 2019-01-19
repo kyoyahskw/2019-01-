@@ -19,7 +19,7 @@ typedef struct player{
 
 int sw(int ,P *);
 int input(P *); //データを入力する
-int output(P *);  //画面に出力
+int output(P ,P *);  //画面に出力
 int sort(int ,P *); //順位振り分け
 int filewrite(P *);  //ファイルに出力
 int ranksort(int ,P *); //順位を画面表示する形にソート
@@ -29,53 +29,21 @@ int freedata(P *);
 
 int main(){
   int num,i;
-  P *first,*next;
-  system("cls");
+  P start,*work;
+
   printf("###     Data input application.     ###\n");
   printf("### You must put \'f\' with last data.###\n");
 
-  first=(P *)malloc(sizeof(P));
-  num=input(first);
+  work = &start;
+  work->p = NULL;
 
-  for(i=0;i<num;i++){
-    if(i==0){
-      output(first);
-    }else{
-      next=first->p;
-      free(first);
-      first=next;
-      output(first);
-    }
-  }
+  num=input(work);
 
-  sort(num,first);
-
-  for(i=0;i<num;i++){
-    if(i==0){
-      filewrite(first);
-    }else{
-      next=first->p;
-      free(first);
-      first=next;
-      filewrite(first);
-    }
-  }
-
-  ranksort(num,first);
-
-  for(i=0;i<num;i++){
-    if(i==0){
-      sortout(first);
-    }else{
-      next=first->p;
-      free(first);
-      first=next;
-      sortout(first);
-    }
-  }
+  output(start,work);
 
   printf("Data number = %d\n\n",num);
-  freedata(first);
+
+  freedata(work);
 
   return 0;
 }
@@ -126,55 +94,38 @@ int sw(int i,P *pp){
 }
 
 
-int input(P *now){
+int input(P *work){
   int i,num=0;
   char c;
-    P *next;
+  P *new;
 
   while(1){
-    printf("\nnunber of player> %d\n",++num);
-    (now->number)=num;
-    (now->rank)=num;
-    printf("player name>");
-    scanf(" %s",now->name);
-    for(i=0;i<6;i++){
-      sw(i,now);
+    new=(P *)malloc(sizeof(P));
+    if(new == NULL){
+      printf("Nothing Memory.\n");
+      exit(1);
     }
+    printf("\nnunber of player> %d\n",++num);
+    (new->number)=num;
+    (new->rank)=num;
+    printf("player name>");
+    scanf(" %s",new->name);
+    for(i=0;i<6;i++){
+      sw(i,new);
+    }
+
     printf("fin ? >");
     scanf(" %c",&c);
     if(c=='f'){
-      now->p = NULL;
+      new->p = NULL;
       break;
     }else{
-      next=(P *)malloc(sizeof(P));  //データ入力のためのメモリ確保
-      now->p=next;  //次のデータのアドレスを設定
-      now=next; //次のデータの入力じゅんび
+      work->p = new;
+      new->p = NULL;
+      work = new;
     }
   }
   return num;
-}
-
-
-int output(P *pp){
-  int total;
-  (pp->total)=(pp->dif)+(pp->actcon)+(pp->stab)+(pp->nov)-(pp->ded);
-  printf("\n\nplayer nunber> %d\n",pp->number);
-  printf("player name> %s\n",pp->name);
-  if((pp->sex)==0){
-    strcpy((pp->sexs),"male");
-    printf("player's sex> %s\n",pp->sexs);
-  }else{
-    strcpy((pp->sexs),"female");
-    printf("player's sex> female\n",pp->sexs);
-  }
-  printf("Difficulty point (0-40)> %d\n",pp->dif);
-  printf("Acting Configuration point (0-25)> %d\n",pp->actcon);
-  printf("Stability point (0-20)> %d\n",pp->stab);
-  printf("Novelty point (0-15)> %d\n",pp->nov);
-  printf("Deduction point> %d\n",pp->ded);
-  printf("Total point> %d\n\n",pp->total);
-
-  return 0;
 }
 
 
@@ -193,77 +144,45 @@ int sort(int num,P *pp){
 }
 
 
-int filewrite(P *pp){
-  FILE *datafp;
-  datafp=fopen("playerdata.csv","a");
-  if(datafp==NULL){
-        printf("\n");
-        return -1;
+int output(P start,P *work){
+  work=start.p;
+  while(work!=NULL){
+    int total;
+    (work->total)=(work->dif)+(work->actcon)+(work->stab)+(work->nov)-(work->ded);
+    printf("\n\nplayer nunber> %d\n",work->number);
+    printf("player name> %s\n",work->name);
+    if((work->sex)==0){
+      strcpy((work->sexs),"male");
+      printf("player's sex> %s\n",work->sexs);
     }else{
-        printf("\nFile open.\n");
+      strcpy((work->sexs),"female");
+      printf("player's sex> female\n",work->sexs);
     }
+    printf("Difficulty point (0-40)> %d\n",work->dif);
+    printf("Acting Configuration point (0-25)> %d\n",work->actcon);
+    printf("Stability point (0-20)> %d\n",work->stab);
+    printf("Novelty point (0-15)> %d\n",work->nov);
+    printf("Deduction point> %d\n",work->ded);
+    printf("Total point> %d\n",work->total);
+    printf("Rank> %d\n\n",work->rank);
 
-    fprintf(datafp,"%d,",pp->number);
-    fprintf(datafp,"%s,",pp->name);
-    fprintf(datafp,"%s,",pp->sexs);
-    fprintf(datafp,"%d,",pp->dif);
-    fprintf(datafp,"%d,",pp->actcon);
-    fprintf(datafp,"%d,",pp->stab);
-    fprintf(datafp,"%d,",pp->nov);
-    fprintf(datafp,"%d,",pp->ded);
-    fprintf(datafp,"%d,",pp->total);
-    fprintf(datafp,"%d,",pp->rank);
-    fprintf(datafp,"\n");
-
-    fclose(datafp);
-    printf("File close.\n");
-    return 0;
-}
-
-
-int ranksort(int num,P *pp){
-  int i,j,tmp,tmpr;
-  char tmps[20];
-  for (i=0; i<num; ++i) {
-    for (j=i+1; j<num; ++j) {
-      if (((pp+i)->rank)>((pp+j)->rank)) {
-        tmpr = ((pp+i)->rank);
-        ((pp+i)->rank)=((pp+j)->rank);
-        ((pp+j)->rank)= tmpr;
-
-        tmp = ((pp+i)->number);
-        ((pp+i)->number)=((pp+j)->number);
-        ((pp+j)->number)= tmp;
-
-        strcpy(tmps,((pp+i)->name));
-        strcpy(((pp+i)->name),((pp+j)->name));
-        strcpy(((pp+j)->name),tmps);
-      }
-    }
+    work=work->p;
   }
   return 0;
 }
 
 
-int sortout(P *pp){
-  printf("player rank:%d ",pp->rank);
-  printf("nunber:%d ",pp->number);
-  printf("name:%s\n",pp->name);
-  return 0;
-}
 
-int freedata(P *now){
-    int num=0;
-    P *next;
-    while(1){
-        if(now->p != NULL){
-            next=now->p;
-            free(now);
-            now=next;
-        }else{
-            printf("Finish.\n");
-            break;
-        }
-    }
-    return 0;
+
+
+int freedata(P *work){
+  int num=0;
+  P *work2;
+  while(work!=NULL){
+    work2=work->p;
+    free(work);
+    work=work2;
+  }
+  printf("Free Memory.\n");
+  return 0;
 }
