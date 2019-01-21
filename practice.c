@@ -14,7 +14,7 @@ typedef struct player{
   int ded; //Deduction 減点
   int total;
   int rank; //順位
-  struct player *p;
+  struct player *next; //次のデータへのポインタ
 }P;
 
 int sw(int ,P *);
@@ -29,13 +29,14 @@ int freedata(P *);
 
 int main(){
   int num,i;
-  P start,*work;
+  P start; //リストの先頭の構造体変数
+  P *work; //作業用のポインタ
 
   printf("###     Data input application.     ###\n");
   printf("### You must put \'f\' with last data.###\n");
 
   work = &start;
-  work->p = NULL;
+  work->next = NULL;
 
   num=input(work);
 
@@ -105,7 +106,7 @@ int input(P *work){
       printf("Nothing Memory.\n");
       exit(1);
     }
-    printf("\nnunber of player> %d\n",++num);
+    printf("\nnumber of player> %d\n",++num);
     (new->number)=num;
     (new->rank)=num;
     printf("player name>");
@@ -117,11 +118,12 @@ int input(P *work){
     printf("fin ? >");
     scanf(" %c",&c);
     if(c=='f'){
-      new->p = NULL;
+      work->next = new;
+      new->next = NULL;
       break;
     }else{
-      work->p = new;
-      new->p = NULL;
+      work->next = new;
+      new->next = NULL;
       work = new;
     }
   }
@@ -145,7 +147,7 @@ int sort(int num,P *pp){
 
 
 int output(P start,P *work){
-  work=start.p;
+  work=start.next;
   while(work!=NULL){
     int total;
     (work->total)=(work->dif)+(work->actcon)+(work->stab)+(work->nov)-(work->ded);
@@ -166,7 +168,7 @@ int output(P start,P *work){
     printf("Total point> %d\n",work->total);
     printf("Rank> %d\n\n",work->rank);
 
-    work=work->p;
+    work=work->next;
   }
   return 0;
 }
@@ -179,7 +181,7 @@ int freedata(P *work){
   int num=0;
   P *work2;
   while(work!=NULL){
-    work2=work->p;
+    work2=work->next;
     free(work);
     work=work2;
   }
