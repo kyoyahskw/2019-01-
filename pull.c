@@ -13,14 +13,19 @@ typedef struct player{
   int nov;  //Novelty 新規性
   int ded; //Deduction 減点
   int total;
+  int rank; //順位
   struct player *next;
 }P;
 
 int sw(int ,P *);
-int input(P ,P *); //データを入力する
+int input(P *); //データを入力する
 int output(P ,P *);  //画面に出力
-int sort(P ,P *); //順位振り分け
+int sort(int ,P *); //順位振り分け
+int filewrite(P *);  //ファイルに出力
+int ranksort(int ,P *); //順位を画面表示する形にソート
+int sortout(P *); //順位を画面出力
 int freedata(P *);
+
 
 int main(){
   int num,i;
@@ -28,13 +33,15 @@ int main(){
   P *work;  //作業用のポインタ
 
   printf("###     Data input application.     ###\n");
-  printf("### You must put \'fin\' with last data.###\n");
+  printf("### You must put \'f\' with last data.###\n");
 
   work = &start;
   work->next = NULL;
 
-  num=input(start,work);
-  sort(start,work);
+  num=input(work);
+
+  sort(num,work);
+
   output(start,work);
 
   printf("Data number = %d\n\n",num);
@@ -85,7 +92,6 @@ int sw(int i,P *pp){
       break;
     case 6:
       (pp->total)=(pp->dif)+(pp->actcon)+(pp->stab)+(pp->nov)-(pp->ded);
-      printf("Total point>%d\n",pp->total);
       break;
     default:
       return -1;
@@ -93,7 +99,8 @@ int sw(int i,P *pp){
   return 0;
 }
 
-int input(P start,P *work){
+
+int input(P *work){
   int i,num=0;
   char c;
   P *new;
@@ -106,6 +113,7 @@ int input(P start,P *work){
     }
     printf("\nnumber of player> %d\n",++num);
     (new->number)=num;
+    (new->rank)=num;
     printf("player name>");
     scanf(" %s",new->name);
     for(i=0;i<7;i++){
@@ -127,24 +135,21 @@ int input(P start,P *work){
   return num;
 }
 
-int sort(P start,P *now){
-  P *tmp,*next;
-  now = &start;
-  next=now->next;
-  tmp=next;
-  for(;now->next != NULL;){
-    if(now->total >= tmp->total){
-      tmp=next->next;
-      now = next;
-      next=tmp;
-    }else{
-      tmp=next->next;
-      next=now;
-      now=tmp;
+
+int sort(int num,P *pp){
+  int i,j,tmp;
+  for(i=0;i<num;++i){
+    for(j=i+1;j<num;++j){
+      if(((pp+i)->total)<((pp+j)->total)){
+        tmp=((pp+i)->rank);
+        ((pp+i)->rank)=((pp+j)->rank);
+        ((pp+j)->rank)=tmp;
+      }
     }
   }
   return 0;
 }
+
 
 int output(P start,P *work){
   work=start.next;
@@ -164,11 +169,16 @@ int output(P start,P *work){
     printf("Novelty point (0-15)> %d\n",work->nov);
     printf("Deduction point> %d\n",work->ded);
     printf("Total point> %d\n",work->total);
+    printf("Rank> %d\n\n",work->rank);
 
     work=work->next;
   }
   return 0;
 }
+
+
+
+
 
 int freedata(P *work){
   int num=0;
